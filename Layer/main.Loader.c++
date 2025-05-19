@@ -21,7 +21,7 @@ vkCreateInstance(
   VkAllocationCallbacks const *pAllocator,
   VkInstance                  *pInstance)
 {
-  if (GetInstanceProcAddr != nullptr) {
+  if (GetInstanceProcAddr != nullptr) [[likely]] {
     goto skiploop;
   }
   for (auto *i = (VkLayerInstanceCreateInfo *)pCreateInfo->pNext; i != nullptr;
@@ -50,7 +50,7 @@ vkCreateDevice(
   VkAllocationCallbacks const *pAllocator,
   VkDevice                    *pDevice)
 {
-  if (GetDeviceProcAddr != nullptr) {
+  if (GetDeviceProcAddr != nullptr) [[likely]] {
     goto skiploop;
   }
   for (auto *i = (VkLayerDeviceCreateInfo *)pCreateInfo->pNext; i != nullptr;
