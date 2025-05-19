@@ -4,6 +4,5 @@ include(.cmake/Setup.cmake)
 
 project(VkLayerTemplate)
 
-MODULE(${PROJECT_NAME})
-
-add_subdirectory(Source)
+add_subdirectory(Layer)
+add_subdirectory(Launcher)

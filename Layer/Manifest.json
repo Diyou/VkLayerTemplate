@@ -7,10 +7,6 @@
     "api_version": "1.3.0",
     "implementation_version": "1",
     "description": "@VK_LAYER_DESCRIPTION@",
-    "functions": {
-      "vkGetInstanceProcAddr": "VKLAYER_TEMPLATE_vkGetInstanceProcAddr",
-      "vkGetDeviceProcAddr": "VKLAYER_TEMPLATE_vkGetDeviceProcAddr"
-    },
     "enable_environment": {
       "@VK_LAYER_TOGGLE@": "1"
     },
