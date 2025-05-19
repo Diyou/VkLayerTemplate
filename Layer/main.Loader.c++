@@ -9,6 +9,12 @@ PFN_vkGetDeviceProcAddr   GetDeviceProcAddr   = nullptr;
 namespace Layer {
 using namespace std;
 
+struct Functions
+{
+  static inline string_view CreateInstance = "vkCreateInstance";
+  static inline string_view CreateDevice   = "vkCreateDevice";
+};
+
 VKAPI_ATTR VkResult VKAPI_CALL
 vkCreateInstance(
   VkInstanceCreateInfo const  *pCreateInfo,
@@ -56,24 +62,14 @@ vkCreateDevice(
   return next(physicalDevice, pCreateInfo, pAllocator, pDevice);
 }
 
-inline PFN_vkVoidFunction
-Overlay(string_view pName)
-{
-  if ("vkCreateInstance" == pName) {
-    return reinterpret_cast< PFN_vkVoidFunction >(vkCreateInstance);
-  }
-  if ("vkCreateDevice" == pName) {
-    return reinterpret_cast< PFN_vkVoidFunction >(vkCreateDevice);
-  }
-  return nullptr;
-}
-
 VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL
 vkGetInstanceProcAddr(VkInstance pInstance, char const *pName)
 {
-  auto const overlayed = Overlay(pName);
-  if (overlayed != nullptr) {
-    return overlayed;
+  if (Functions::CreateInstance == pName) {
+    return reinterpret_cast< PFN_vkVoidFunction >(vkCreateInstance);
+  }
+  if (Functions::CreateDevice == pName) {
+    return reinterpret_cast< PFN_vkVoidFunction >(vkCreateDevice);
   }
 
   auto const next = GetInstanceProcAddr(pInstance, pName);
@@ -84,11 +80,6 @@ vkGetInstanceProcAddr(VkInstance pInstance, char const *pName)
 VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL
 vkGetDeviceProcAddr(VkDevice pDevice, char const *pName)
 {
-  auto const overlayed = Overlay(pName);
-  if (overlayed != nullptr) {
-    return overlayed;
-  }
-
   auto const next = GetDeviceProcAddr(pDevice, pName);
   cout << format("[{}]:\t{}(0x{:x})\n", __func__, pName, uintptr_t(next));
   return next;
