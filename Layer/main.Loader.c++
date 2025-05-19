@@ -15,7 +15,6 @@ vkCreateInstance(
   VkAllocationCallbacks const *pAllocator,
   VkInstance                  *pInstance)
 {
-  cout << "---Creating Instance---\n";
   for (auto *i = (VkLayerInstanceCreateInfo *)pCreateInfo->pNext; i != nullptr;
        i       = (VkLayerInstanceCreateInfo *)i->pNext)
   {
@@ -40,7 +39,6 @@ vkCreateDevice(
   VkAllocationCallbacks const *pAllocator,
   VkDevice                    *pDevice)
 {
-  cout << "---Creating Device---\n";
   for (auto *i = (VkLayerDeviceCreateInfo *)pCreateInfo->pNext; i != nullptr;
        i       = (VkLayerDeviceCreateInfo *)i->pNext)
   {
@@ -79,7 +77,7 @@ vkGetInstanceProcAddr(VkInstance pInstance, char const *pName)
   }
 
   auto const next = GetInstanceProcAddr(pInstance, pName);
-  cout << format("[GIPA]:\t{}(0x{:x})\n", pName, uintptr_t(next));
+  cout << format("[{}]:\t{}(0x{:x})\n", __func__, pName, uintptr_t(next));
   return next;
 }
 
@@ -92,21 +90,18 @@ vkGetDeviceProcAddr(VkDevice pDevice, char const *pName)
   }
 
   auto const next = GetDeviceProcAddr(pDevice, pName);
-  cout << format("[GDPA]:\t{}(0x{:x})\n", pName, uintptr_t(next));
+  cout << format("[{}]:\t{}(0x{:x})\n", __func__, pName, uintptr_t(next));
   return next;
 }
 
 }
 
-extern "C"
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkNegotiateLoaderLayerInterfaceVersion(
+  VkNegotiateLayerInterface *pVersionStruct)
 {
-  VKAPI_ATTR VkResult VKAPI_CALL
-  vkNegotiateLoaderLayerInterfaceVersion(
-    VkNegotiateLayerInterface *pVersionStruct)
-  {
-    pVersionStruct->pfnGetInstanceProcAddr = Layer::vkGetInstanceProcAddr;
-    pVersionStruct->pfnGetDeviceProcAddr   = Layer::vkGetDeviceProcAddr;
+  pVersionStruct->pfnGetInstanceProcAddr = Layer::vkGetInstanceProcAddr;
+  pVersionStruct->pfnGetDeviceProcAddr   = Layer::vkGetDeviceProcAddr;
 
-    return VK_SUCCESS;
-  }
+  return VK_SUCCESS;
 }
