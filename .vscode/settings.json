@@ -53,12 +53,16 @@
             "statusBarVisibility": "icon"
         }
     },
-    "cmake.environment": {
-        "VKLAYERTEMPLATE": "1",
-        "VK_LOADER_DEBUG": "layer,warn,error"
-    },
     "cmake.debugConfig": {
         "environment": [
+            {
+                "name": "VKLAYERTEMPLATE",
+                "value": "1"
+            },
+            {
+                "name": "VK_LOADER_DEBUG",
+                "value": "layer,warn,error"
+            }
             {
                 "name": "VK_ADD_IMPLICIT_LAYER_PATH",
                 "value": "${command:cmake.buildDirectory}/usr/share/vulkan/implicit_layer.d"
