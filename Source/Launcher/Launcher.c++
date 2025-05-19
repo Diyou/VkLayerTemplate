@@ -1,5 +1,9 @@
 #include <cstdlib>
-#include <unistd.h>
+#ifdef _WIN32
+#  include <process.h>
+#else
+#  include <unistd.h>
+#endif
 
 import std;
 using namespace std;
@@ -7,7 +11,19 @@ using namespace std;
 void
 Launch(span< char * > const &args)
 {
-  execvp(args.at(0), args.data());
+  auto *const cmd = args.at(0);
+
+#ifdef _WIN32
+  auto const result = _spawnvp(_P_OVERLAY, cmd, args.data());
+  if (result != -1) {
+    return;
+  }
+#else
+  auto const result = execvp(cmd, args.data());
+#endif
+
+  cerr << format("Failed to launch {}\n", cmd);
+  exit(EXIT_FAILURE);
 }
 
 void
@@ -32,7 +48,6 @@ main(int argc, char *argv[])
 
   if (!args.empty()) {
     Launch(args);
-    return EXIT_SUCCESS;
   }
 
   PrintHelp(cmd);
