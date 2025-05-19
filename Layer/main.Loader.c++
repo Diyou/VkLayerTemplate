@@ -3,16 +3,16 @@
 
 import std;
 
-PFN_vkGetInstanceProcAddr GetInstanceProcAddr = nullptr;
-PFN_vkGetDeviceProcAddr   GetDeviceProcAddr   = nullptr;
+VKAPI_ATTR PFN_vkGetInstanceProcAddr VKAPI_CALL GetInstanceProcAddr = nullptr;
+VKAPI_ATTR PFN_vkGetDeviceProcAddr VKAPI_CALL   GetDeviceProcAddr   = nullptr;
 
 namespace Layer {
 using namespace std;
 
-struct Functions
+struct VulkanFunctions
 {
-  static inline string_view CreateInstance = "vkCreateInstance";
-  static inline string_view CreateDevice   = "vkCreateDevice";
+  static inline string_view vkCreateInstance = "vkCreateInstance";
+  static inline string_view vkCreateDevice   = "vkCreateDevice";
 };
 
 VKAPI_ATTR VkResult VKAPI_CALL
@@ -74,10 +74,10 @@ skiploop:
 VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL
 vkGetInstanceProcAddr(VkInstance pInstance, char const *pName)
 {
-  if (Functions::CreateInstance == pName) {
+  if (VulkanFunctions::vkCreateInstance == pName) {
     return reinterpret_cast< PFN_vkVoidFunction >(vkCreateInstance);
   }
-  if (Functions::CreateDevice == pName) {
+  if (VulkanFunctions::vkCreateDevice == pName) {
     return reinterpret_cast< PFN_vkVoidFunction >(vkCreateDevice);
   }
 
