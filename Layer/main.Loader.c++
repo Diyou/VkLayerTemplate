@@ -21,6 +21,9 @@ vkCreateInstance(
   VkAllocationCallbacks const *pAllocator,
   VkInstance                  *pInstance)
 {
+  if (GetInstanceProcAddr != nullptr) {
+    goto skiploop;
+  }
   for (auto *i = (VkLayerInstanceCreateInfo *)pCreateInfo->pNext; i != nullptr;
        i       = (VkLayerInstanceCreateInfo *)i->pNext)
   {
@@ -32,6 +35,8 @@ vkCreateInstance(
     }
   }
   assert(GetInstanceProcAddr != nullptr);
+skiploop:
+
   static auto const next = reinterpret_cast< PFN_vkCreateInstance >(
     GetInstanceProcAddr(*pInstance, __func__));
 
@@ -45,6 +50,9 @@ vkCreateDevice(
   VkAllocationCallbacks const *pAllocator,
   VkDevice                    *pDevice)
 {
+  if (GetDeviceProcAddr != nullptr) {
+    goto skiploop;
+  }
   for (auto *i = (VkLayerDeviceCreateInfo *)pCreateInfo->pNext; i != nullptr;
        i       = (VkLayerDeviceCreateInfo *)i->pNext)
   {
@@ -56,6 +64,7 @@ vkCreateDevice(
     }
   }
   assert(GetDeviceProcAddr != nullptr);
+skiploop:
 
   static auto const next = reinterpret_cast< PFN_vkCreateDevice >(
     GetInstanceProcAddr(VK_NULL_HANDLE, __func__));
@@ -84,7 +93,6 @@ vkGetDeviceProcAddr(VkDevice pDevice, char const *pName)
   cout << format("[{}]:\t{}(0x{:x})\n", __func__, pName, uintptr_t(next));
   return next;
 }
-
 }
 
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
