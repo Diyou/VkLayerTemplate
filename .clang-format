@@ -34,6 +34,7 @@ AlignConsecutiveBitFields:
   Enabled: true
   AcrossEmptyLines: true
   AcrossComments: true
+AlignEscapedNewlines: LeftWithLastLine
 QualifierAlignment: Right
 PointerAlignment: Right
 ReferenceAlignment: Pointer
