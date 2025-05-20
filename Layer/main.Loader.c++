@@ -15,27 +15,39 @@ struct VulkanFunctions
   static constexpr string_view vkCreateDevice   = "vkCreateDevice";
 };
 
-enum class LoaderCreateType : uint8_t
+enum class LoaderCreateInfo : uint8_t
 {
   INSTANCE = VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO,
   DEVICE   = VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO
 };
+
+bool
+operator==(VkStructureType left, LoaderCreateInfo right)
+{
+  return left == VkStructureType(right);
+}
+
+bool
+operator==(LoaderCreateInfo left, VkStructureType right)
+{
+  return operator==(right, left);
+}
 
 template< typename T >
 concept LayerCreateInfo = same_as< T, VkLayerInstanceCreateInfo >
                        || same_as< T, VkLayerDeviceCreateInfo >;
 
 template< LayerCreateInfo Info >
-inline Info const *
-FindLayerLink(Info const *info, LoaderCreateType const &loader)
+Info const *
+FindLayerLink(Info const *info, LoaderCreateInfo const loader)
 {
-  using cast = Info const *;
-  for (auto *i = cast(info->pNext); i != nullptr; i = cast(i->pNext)) {
-    if (
-      i->sType == VkStructureType(loader) && i->function == VK_LAYER_LINK_INFO)
-    {
-      return i;
+  using const_Info = Info const *;
+  auto *next       = const_Info(info->pNext);
+  while (next != nullptr) {
+    if (next->sType == loader && next->function == VK_LAYER_LINK_INFO) {
+      return next;
     }
+    next = const_Info(next->pNext);
   }
   return nullptr;
 }
@@ -45,7 +57,7 @@ concept CreateInfo =
   same_as< T, VkInstanceCreateInfo > || same_as< T, VkDeviceCreateInfo >;
 
 template< CreateInfo T >
-inline VkResult
+VkResult
 Initialize(T const *info)
 {
   if constexpr (is_same_v< T, VkInstanceCreateInfo >) {
@@ -53,7 +65,7 @@ Initialize(T const *info)
       return VK_SUCCESS;
     }
     auto const *loader = FindLayerLink(
-      (VkLayerInstanceCreateInfo *)info, LoaderCreateType::INSTANCE);
+      (VkLayerInstanceCreateInfo *)info, LoaderCreateInfo::INSTANCE);
 
     if (loader == nullptr) [[unlikely]] {
       return VK_ERROR_INITIALIZATION_FAILED;
@@ -66,7 +78,7 @@ Initialize(T const *info)
       return VK_SUCCESS;
     }
     auto const *loader =
-      FindLayerLink((VkLayerDeviceCreateInfo *)info, LoaderCreateType::DEVICE);
+      FindLayerLink((VkLayerDeviceCreateInfo *)info, LoaderCreateInfo::DEVICE);
     if (loader == nullptr) [[unlikely]] {
       return VK_ERROR_INITIALIZATION_FAILED;
     }
@@ -141,6 +153,5 @@ vkNegotiateLoaderLayerInterfaceVersion(
 {
   pVersionStruct->pfnGetInstanceProcAddr = Layer::vkGetInstanceProcAddr;
   pVersionStruct->pfnGetDeviceProcAddr   = Layer::vkGetDeviceProcAddr;
-
   return VK_SUCCESS;
 }
