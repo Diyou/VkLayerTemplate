@@ -104,8 +104,10 @@ vkCreateDevice(
   if (result != VK_SUCCESS) [[unlikely]] {
     return result;
   }
+
   static auto const next = PFN_vkCreateDevice(GetInstanceProcAddr(
     VK_NULL_HANDLE, VulkanFunctions::vkCreateDevice.data()));
+
   return next(physicalDevice, pCreateInfo, pAllocator, pDevice);
 }
 
