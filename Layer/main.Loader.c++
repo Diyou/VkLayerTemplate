@@ -11,9 +11,70 @@ using namespace std;
 
 struct VulkanFunctions
 {
-  static inline string_view vkCreateInstance = "vkCreateInstance";
-  static inline string_view vkCreateDevice   = "vkCreateDevice";
+  static constexpr string_view vkCreateInstance = "vkCreateInstance";
+  static constexpr string_view vkCreateDevice   = "vkCreateDevice";
 };
+
+enum class LoaderCreateType : uint8_t
+{
+  INSTANCE = VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO,
+  DEVICE   = VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO
+};
+
+template< typename T >
+concept LayerCreateInfo = same_as< T, VkLayerInstanceCreateInfo >
+                       || same_as< T, VkLayerDeviceCreateInfo >;
+
+template< LayerCreateInfo Info >
+inline Info const *
+FindLayerLink(Info const *info, LoaderCreateType const &loader)
+{
+  using cast = Info const *;
+  for (auto *i = cast(info->pNext); i != nullptr; i = cast(i->pNext)) {
+    if (
+      i->sType == VkStructureType(loader) && i->function == VK_LAYER_LINK_INFO)
+    {
+      return i;
+    }
+  }
+  return nullptr;
+}
+
+template< typename T >
+concept CreateInfo =
+  same_as< T, VkInstanceCreateInfo > || same_as< T, VkDeviceCreateInfo >;
+
+template< CreateInfo T >
+inline VkResult
+Initialize(T const *info)
+{
+  if constexpr (is_same_v< T, VkInstanceCreateInfo >) {
+    if (GetInstanceProcAddr != nullptr) [[likely]] {
+      return VK_SUCCESS;
+    }
+    auto const *loader = FindLayerLink(
+      (VkLayerInstanceCreateInfo *)info, LoaderCreateType::INSTANCE);
+
+    if (loader == nullptr) [[unlikely]] {
+      return VK_ERROR_INITIALIZATION_FAILED;
+    }
+
+    GetInstanceProcAddr = loader->u.pLayerInfo->pfnNextGetInstanceProcAddr;
+  }
+  else if constexpr (is_same_v< T, VkDeviceCreateInfo >) {
+    if (GetDeviceProcAddr != nullptr) [[likely]] {
+      return VK_SUCCESS;
+    }
+    auto const *loader =
+      FindLayerLink((VkLayerDeviceCreateInfo *)info, LoaderCreateType::DEVICE);
+    if (loader == nullptr) [[unlikely]] {
+      return VK_ERROR_INITIALIZATION_FAILED;
+    }
+
+    GetDeviceProcAddr = loader->u.pLayerInfo->pfnNextGetDeviceProcAddr;
+  }
+  return VK_SUCCESS;
+}
 
 VKAPI_ATTR VkResult VKAPI_CALL
 vkCreateInstance(
@@ -21,24 +82,13 @@ vkCreateInstance(
   VkAllocationCallbacks const *pAllocator,
   VkInstance                  *pInstance)
 {
-  if (GetInstanceProcAddr != nullptr) [[likely]] {
-    goto skiploop;
+  auto const result = Initialize(pCreateInfo);
+  if (result != VK_SUCCESS) [[unlikely]] {
+    return result;
   }
-  for (auto *i = (VkLayerInstanceCreateInfo *)pCreateInfo->pNext; i != nullptr;
-       i       = (VkLayerInstanceCreateInfo *)i->pNext)
-  {
-    if (
-      i->sType == VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO
-      && i->function == VK_LAYER_LINK_INFO)
-    {
-      GetInstanceProcAddr = i->u.pLayerInfo->pfnNextGetInstanceProcAddr;
-    }
-  }
-  assert(GetInstanceProcAddr != nullptr);
-skiploop:
 
-  static auto const next = reinterpret_cast< PFN_vkCreateInstance >(
-    GetInstanceProcAddr(*pInstance, __func__));
+  static auto const next = PFN_vkCreateInstance(
+    GetInstanceProcAddr(*pInstance, VulkanFunctions::vkCreateInstance.data()));
 
   return next(pCreateInfo, pAllocator, pInstance);
 }
@@ -50,24 +100,12 @@ vkCreateDevice(
   VkAllocationCallbacks const *pAllocator,
   VkDevice                    *pDevice)
 {
-  if (GetDeviceProcAddr != nullptr) [[likely]] {
-    goto skiploop;
+  auto const result = Initialize(pCreateInfo);
+  if (result != VK_SUCCESS) [[unlikely]] {
+    return result;
   }
-  for (auto *i = (VkLayerDeviceCreateInfo *)pCreateInfo->pNext; i != nullptr;
-       i       = (VkLayerDeviceCreateInfo *)i->pNext)
-  {
-    if (
-      i->sType == VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO
-      && i->function == VK_LAYER_LINK_INFO)
-    {
-      GetDeviceProcAddr = i->u.pLayerInfo->pfnNextGetDeviceProcAddr;
-    }
-  }
-  assert(GetDeviceProcAddr != nullptr);
-skiploop:
-
-  static auto const next = reinterpret_cast< PFN_vkCreateDevice >(
-    GetInstanceProcAddr(VK_NULL_HANDLE, __func__));
+  static auto const next = PFN_vkCreateDevice(GetInstanceProcAddr(
+    VK_NULL_HANDLE, VulkanFunctions::vkCreateDevice.data()));
   return next(physicalDevice, pCreateInfo, pAllocator, pDevice);
 }
 
@@ -75,10 +113,10 @@ VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL
 vkGetInstanceProcAddr(VkInstance pInstance, char const *pName)
 {
   if (VulkanFunctions::vkCreateInstance == pName) {
-    return reinterpret_cast< PFN_vkVoidFunction >(vkCreateInstance);
+    return PFN_vkVoidFunction(vkCreateInstance);
   }
   if (VulkanFunctions::vkCreateDevice == pName) {
-    return reinterpret_cast< PFN_vkVoidFunction >(vkCreateDevice);
+    return PFN_vkVoidFunction(vkCreateDevice);
   }
 
   auto const next = GetInstanceProcAddr(pInstance, pName);
