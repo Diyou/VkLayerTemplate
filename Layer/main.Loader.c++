@@ -41,13 +41,13 @@ template< LayerCreateInfo Info >
 Info const *
 FindLayerLink(Info const *info, LoaderCreateInfo const loader)
 {
-  using const_Info = Info const *;
-  auto *next       = const_Info(info->pNext);
-  while (next != nullptr) {
-    if (next->sType == loader && next->function == VK_LAYER_LINK_INFO) {
-      return next;
+  using pointer = Info const *;
+
+  for (auto *i = pointer(info->pNext); i != nullptr;) [[likely]] {
+    if (i->sType == loader && i->function == VK_LAYER_LINK_INFO) [[unlikely]] {
+      return i;
     }
-    next = const_Info(next->pNext);
+    i = pointer(i->pNext);
   }
   return nullptr;
 }
@@ -64,26 +64,26 @@ Initialize(T const *info)
     if (GetInstanceProcAddr != nullptr) [[likely]] {
       return VK_SUCCESS;
     }
-    auto const *loader = FindLayerLink(
+    auto const *link = FindLayerLink(
       (VkLayerInstanceCreateInfo *)info, LoaderCreateInfo::INSTANCE);
 
-    if (loader == nullptr) [[unlikely]] {
+    if (link == nullptr) [[unlikely]] {
       return VK_ERROR_INITIALIZATION_FAILED;
     }
 
-    GetInstanceProcAddr = loader->u.pLayerInfo->pfnNextGetInstanceProcAddr;
+    GetInstanceProcAddr = link->u.pLayerInfo->pfnNextGetInstanceProcAddr;
   }
   else if constexpr (is_same_v< T, VkDeviceCreateInfo >) {
     if (GetDeviceProcAddr != nullptr) [[likely]] {
       return VK_SUCCESS;
     }
-    auto const *loader =
+    auto const *link =
       FindLayerLink((VkLayerDeviceCreateInfo *)info, LoaderCreateInfo::DEVICE);
-    if (loader == nullptr) [[unlikely]] {
+    if (link == nullptr) [[unlikely]] {
       return VK_ERROR_INITIALIZATION_FAILED;
     }
 
-    GetDeviceProcAddr = loader->u.pLayerInfo->pfnNextGetDeviceProcAddr;
+    GetDeviceProcAddr = link->u.pLayerInfo->pfnNextGetDeviceProcAddr;
   }
   return VK_SUCCESS;
 }
