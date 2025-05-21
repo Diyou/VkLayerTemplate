@@ -21,39 +21,33 @@ export struct Compiler
 #endif
 };
 
+constexpr string_view empty_view;
+
 constexpr string_view
-strip_namespace(string_view name)
+strip_left(string_view view, string_view match)
 {
-  string_view needle = "::";
-  size_t      pos    = name.rfind(needle);
-  return pos == string_view::npos ? name : name.substr(pos + needle.size());
+  size_t pos = view.rfind(match);
+  return pos == string_view::npos ? empty_view
+                                  : view.substr(pos + match.size());
 }
 
-template< size_t N >
-constexpr array< char, N + 1 >
-to_array(string_view view)
+constexpr string_view
+strip_first_of(string_view view, string_view match)
 {
-  array< char, N + 1 > buffer{};
-  copy(view.begin(), view.end(), buffer.begin());
-  return buffer;
+  size_t pos = view.find_first_of(match);
+  return pos == string_view::npos ? empty_view : view.substr(0, pos);
 }
 
 template< auto T >
 constexpr auto
 GetFunctionView()
 {
-  string_view needle    = Compiler::GCC ? "[with auto T = " : "[T = &";
-  string_view signature = source_location::current().function_name();
-  size_t      pos       = signature.rfind(needle);
-  if (pos == string_view::npos) {
-    return string_view{};
-  }
-  signature = signature.substr(pos + needle.size());
-  pos       = signature.find_first_of(";]>");
-  if (pos == string_view::npos) {
-    return string_view{};
-  }
-  return strip_namespace(signature.substr(0, pos));
+  string_view needle = Compiler::GCC ? "[with auto T = " : "[T = &";
+  string_view signature =
+    strip_left(source_location::current().function_name(), needle);
+  string_view stripped_namespace = strip_left(signature, "::");
+  signature = stripped_namespace.empty() ? signature : stripped_namespace;
+  return strip_first_of(signature, ";]>");
 }
 
 constexpr bool
@@ -65,6 +59,15 @@ compare(string_view const left, char const *right)
     }
   }
   return true;
+}
+
+template< size_t N >
+constexpr auto
+to_array(string_view view)
+{
+  array< char, N + 1 > buffer{};
+  copy(view.begin(), view.end(), buffer.begin());
+  return buffer;
 }
 
 export template< auto Function >
