@@ -2,6 +2,7 @@
 
 import std;
 import Utils;
+
 using namespace std;
 
 VKAPI_ATTR PFN_vkGetInstanceProcAddr VKAPI_CALL GetInstanceProcAddr = nullptr;
