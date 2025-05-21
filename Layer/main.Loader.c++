@@ -25,6 +25,8 @@ GetNextDeviceProcAddr(VkDevice device)
   using VkFunction    = decltype(Function);
   constexpr auto name = GetFunctionName< Function >();
 
+  cout << name.data() << endl;
+
   return VkFunction(GetDeviceProcAddr(device, name.data()));
 }
 
@@ -104,6 +106,7 @@ vkCreateDevice(
     GetDeviceProcAddr = link->u.pLayerInfo->pfnNextGetDeviceProcAddr;
   }
 
+  GetNextDeviceProcAddr< vkEnumerateDeviceExtensionProperties >(VK_NULL_HANDLE);
   static auto const next =
     GetNextInstanceProcAddr< vkCreateDevice >(VK_NULL_HANDLE);
 
