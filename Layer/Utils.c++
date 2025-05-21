@@ -34,9 +34,7 @@ constexpr array< char, N + 1 >
 to_array(string_view view)
 {
   array< char, N + 1 > buffer{};
-  for (size_t i = 0; i < N && i < view.size(); ++i) {
-    buffer[i] = view[i];
-  }
+  copy(view.begin(), view.end(), buffer.begin());
   return buffer;
 }
 
@@ -59,13 +57,10 @@ GetFunctionView()
 }
 
 constexpr bool
-compare(char const *left, char const *right, size_t const count)
+compare(string_view const left, char const *right)
 {
-  if (left == nullptr || right == nullptr) {
-    return false;
-  }
-  for (size_t i = 0; i < count; i++) {
-    if (left[i] != right[i]) {
+  for (auto const *i = left.begin(); i != left.end(); ++i) {
+    if (*i != right[distance(left.begin(), i)]) {
       return false;
     }
   }
@@ -80,7 +75,7 @@ GetFunctionName()
   constexpr auto buffer = to_array< name.size() >(name);
 
   static_assert(
-    !name.empty() && compare(name.data(), buffer.data(), name.size()),
+    !name.empty() && compare(name, buffer.data()),
     "Function name extraction failed");
 
   return buffer;
