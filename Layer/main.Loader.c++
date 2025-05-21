@@ -1,27 +1,42 @@
-#include <cassert>
 #include <vulkan/vk_layer.h>
 
 import std;
+import Utils;
+using namespace std;
 
 VKAPI_ATTR PFN_vkGetInstanceProcAddr VKAPI_CALL GetInstanceProcAddr = nullptr;
 VKAPI_ATTR PFN_vkGetDeviceProcAddr VKAPI_CALL   GetDeviceProcAddr   = nullptr;
 
-namespace Layer {
-using namespace std;
+template< auto Function >
+constexpr auto
+GetNextInstanceProcAddr(VkInstance instance)
+{
+  using VkFunction    = decltype(Function);
+  constexpr auto name = GetFunctionName< Function >();
 
-struct VulkanFunctions
+  return VkFunction(GetInstanceProcAddr(instance, name.data()));
+}
+
+template< auto Function >
+constexpr auto
+GetNextDeviceProcAddr(VkDevice device)
+{
+  using VkFunction    = decltype(Function);
+  constexpr auto name = GetFunctionName< Function >();
+
+  return VkFunction(GetDeviceProcAddr(device, name.c_str()));
+}
+
+namespace Layer {
+
+struct InstanceFunctions
 {
   static constexpr string_view vkCreateInstance = "vkCreateInstance";
   static constexpr string_view vkCreateDevice   = "vkCreateDevice";
 };
 
-#define NextInstanceProcAddr(VkInstance, VkFunction)                       \
-  PFN_##VkFunction(                                                        \
-    GetInstanceProcAddr(VkInstance, VulkanFunctions ::VkFunction.data()));
-
-#define NextDeviceProcAddr(VkDevice, VkFunction)                       \
-  PFN_##VkFunction(                                                    \
-    GetDeviceProcAddr(VkDevice, VulkanFunctions ::VkFunction.data()));
+struct DeviceFunctions
+{};
 
 template< typename T, typename... Ts >
 concept is_one_of = (same_as< T, Ts > || ...);
@@ -58,14 +73,15 @@ vkCreateInstance(
   if (GetInstanceProcAddr == nullptr) [[unlikely]] {
     auto const *link = FindLayerLink(pCreateInfo);
 
-    if (link == nullptr) [[unlikely]] {
+    if (link == nullptr || link->u.pLayerInfo == nullptr) [[unlikely]] {
       return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     GetInstanceProcAddr = link->u.pLayerInfo->pfnNextGetInstanceProcAddr;
   }
 
-  static auto const next = NextInstanceProcAddr(*pInstance, vkCreateInstance);
+  static auto const next =
+    GetNextInstanceProcAddr< vkCreateInstance >(*pInstance);
 
   return next(pCreateInfo, pAllocator, pInstance);
 }
@@ -80,30 +96,38 @@ vkCreateDevice(
   if (GetDeviceProcAddr == nullptr) [[unlikely]] {
     auto const *link = FindLayerLink(pCreateInfo);
 
-    if (link == nullptr) [[unlikely]] {
+    if (link == nullptr || link->u.pLayerInfo == nullptr) [[unlikely]] {
       return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     GetDeviceProcAddr = link->u.pLayerInfo->pfnNextGetDeviceProcAddr;
   }
 
-  static auto const next = NextInstanceProcAddr(VK_NULL_HANDLE, vkCreateDevice);
+  static auto const next =
+    GetNextInstanceProcAddr< vkCreateDevice >(VK_NULL_HANDLE);
 
   return next(physicalDevice, pCreateInfo, pAllocator, pDevice);
 }
 
+#ifndef NDEBUG
+#  define LOG(next)                                                         \
+    cout << format("[{}]:\t{}(0x{:x})\n", __func__, pName, uintptr_t(next))
+#else
+#  define LOG(next)
+#endif
+
 VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL
 vkGetInstanceProcAddr(VkInstance pInstance, char const *pName)
 {
-  if (VulkanFunctions::vkCreateInstance == pName) {
+  if (InstanceFunctions::vkCreateInstance == pName) {
     return PFN_vkVoidFunction(vkCreateInstance);
   }
-  if (VulkanFunctions::vkCreateDevice == pName) {
+  if (InstanceFunctions::vkCreateDevice == pName) {
     return PFN_vkVoidFunction(vkCreateDevice);
   }
 
   auto const next = GetInstanceProcAddr(pInstance, pName);
-  cout << format("[{}]:\t{}(0x{:x})\n", __func__, pName, uintptr_t(next));
+  LOG(next);
   return next;
 }
 
@@ -111,7 +135,7 @@ VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL
 vkGetDeviceProcAddr(VkDevice pDevice, char const *pName)
 {
   auto const next = GetDeviceProcAddr(pDevice, pName);
-  cout << format("[{}]:\t{}(0x{:x})\n", __func__, pName, uintptr_t(next));
+  LOG(next);
   return next;
 }
 }
@@ -120,7 +144,18 @@ extern "C" VKAPI_ATTR VkResult VKAPI_CALL
 vkNegotiateLoaderLayerInterfaceVersion(
   VkNegotiateLayerInterface *pVersionStruct)
 {
-  pVersionStruct->pfnGetInstanceProcAddr = Layer::vkGetInstanceProcAddr;
-  pVersionStruct->pfnGetDeviceProcAddr   = Layer::vkGetDeviceProcAddr;
+  if (pVersionStruct == nullptr) [[unlikely]] {
+    return VK_ERROR_INITIALIZATION_FAILED;
+  }
+
+  if (pVersionStruct->loaderLayerInterfaceVersion > 3) [[unlikely]] {
+    cout << format(
+      "High Loader LayerInterfaceVersion: {}\n",
+      pVersionStruct->loaderLayerInterfaceVersion);
+  }
+  pVersionStruct->loaderLayerInterfaceVersion = 2;
+
+  pVersionStruct->pfnGetInstanceProcAddr      = Layer::vkGetInstanceProcAddr;
+  pVersionStruct->pfnGetDeviceProcAddr        = Layer::vkGetDeviceProcAddr;
   return VK_SUCCESS;
 }
