@@ -25,7 +25,7 @@ GetNextDeviceProcAddr(VkDevice device)
   using VkFunction    = decltype(Function);
   constexpr auto name = GetFunctionName< Function >();
 
-  return VkFunction(GetDeviceProcAddr(device, name.c_str()));
+  return VkFunction(GetDeviceProcAddr(device, name.data()));
 }
 
 namespace Layer {

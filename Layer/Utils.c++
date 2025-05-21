@@ -1,9 +1,5 @@
 module;
-#ifdef _MSC_VER
-#  define CURRENT_FUNCTION_SIGNATURE __FUNCSIG__
-#else
-#  define CURRENT_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
-#endif
+
 export module Utils;
 
 import std;
@@ -48,8 +44,8 @@ template< auto T >
 constexpr auto
 GetFunctionView()
 {
-  string_view needle    = Compiler::GCC ? "with auto T = " : "&";
-  string_view signature = CURRENT_FUNCTION_SIGNATURE;
+  string_view needle    = Compiler::GCC ? "[with auto T = " : "[T = &";
+  string_view signature = source_location::current().function_name();
   size_t      pos       = signature.rfind(needle);
   if (pos == string_view::npos) {
     return string_view{};
