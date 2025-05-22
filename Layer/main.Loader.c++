@@ -111,8 +111,7 @@ vkCreateDevice(
 }
 
 #ifndef NDEBUG
-#  define LOG(next)                                                         \
-    cout << format("[{}]:\t{}(0x{:x})\n", __func__, pName, uintptr_t(next))
+#  define LOG(next) cout << format("[{}]:\t{}({})\n", __func__, pName, next)
 #else
 #  define LOG(next)
 #endif

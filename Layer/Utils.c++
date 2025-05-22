@@ -21,6 +21,43 @@ export struct Compiler
 #endif
 };
 
+// Enable generic pointer types for format()
+export template< typename T > struct formatter< T *, char >
+{
+  char presentation = 'x'; // default to lowercase hex
+
+  constexpr auto
+  parse(format_parse_context &ctx)
+  {
+    auto const *begin = ctx.begin();
+    auto const *end   = ctx.end();
+
+    if (begin != end && *begin != '}') {
+      presentation = *begin++;
+      if (presentation != 'x' && presentation != 'X') {
+        throw format_error("invalid format specifier for pointer");
+      }
+    }
+
+    if (begin != end && *begin != '}') {
+      throw format_error("invalid format specifier for pointer");
+    }
+
+    return begin;
+  }
+
+  auto
+  format(T *ptr, format_context &ctx) const
+  {
+    auto value = reinterpret_cast< uintptr_t >(ptr);
+
+    if (presentation == 'X') {
+      return format_to(ctx.out(), "0x{:X}", value);
+    }
+    return format_to(ctx.out(), "0x{:x}", value);
+  }
+};
+
 constexpr string_view empty_view;
 
 constexpr string_view
