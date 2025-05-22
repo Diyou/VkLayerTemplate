@@ -1,75 +1,44 @@
 {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "files.exclude": {
-        ".cache": true,
-        "build": true,
-        "**/.git": true,
-        "**/.svn": true,
-        "**/.hg": true,
-        "**/CVS": true,
-        "**/.DS_Store": true,
-        "**/Thumbs.db": true
-    },
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.exclude": {
+    ".cache": true,
+    "build": true,
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true
+  },
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "C_Cpp.intelliSenseEngine": "disabled",
+  "clangd.arguments": ["--header-insertion=never", "--clang-tidy"],
+  "[cpp]": {
     "files.insertFinalNewline": true,
-    "files.trimFinalNewlines": true,
-    "C_Cpp.intelliSenseEngine": "disabled",
-    "clangd.arguments": [
-        "--header-insertion=never",
-        "--clang-tidy"
-    ],
-    "[cpp]": {
-        "files.insertFinalNewline": true,
-        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+  },
+  "cmake.useCMakePresets": "always",
+  "cmake.options.statusBarVisibility": "hidden",
+  "cmake.options.advanced": {
+    "configurePreset": {
+      "statusBarVisibility": "compact"
     },
-    "cmake.useCMakePresets": "always",
-    "cmake.options.statusBarVisibility": "hidden",
-    "cmake.options.advanced": {
-        "configurePreset": {
-            "statusBarVisibility": "compact"
-        },
-        "buildPreset": {
-            "statusBarVisibility": "hidden"
-        },
-        "build": {
-            "statusBarVisibility": "icon"
-        },
-        "buildTarget": {
-            "statusBarVisibility": "compact"
-        },
-        "launch": {
-            "statusBarVisibility": "hidden"
-        },
-        "launchTarget": {
-            "statusBarVisibility": "hidden"
-        },
-        "debug": {
-            "statusBarVisibility": "icon"
-        },
-        "testPreset": {
-            "statusBarVisibility": "hidden"
-        },
-        "ctest": {
-            "statusBarVisibility": "icon"
-        }
+    "build": {
+      "statusBarVisibility": "icon"
     },
-    "cmake.debugConfig": {
-        "environment": [
-            {
-                "name": "VKLAYERTEMPLATE",
-                "value": "1"
-            },
-            {
-                "name": "VK_LOADER_DEBUG",
-                "value": "layer,warn,error"
-            }
-            {
-                "name": "VK_ADD_IMPLICIT_LAYER_PATH",
-                "value": "${command:cmake.buildDirectory}/usr/share/vulkan/implicit_layer.d"
-            }
-        ],
-        "args": [
-            "vkgears"
-        ]
+    "buildTarget": {
+      "statusBarVisibility": "compact"
+    },
+    "launch": {
+      "statusBarVisibility": "hidden"
+    },
+    "debug": {
+      "statusBarVisibility": "hidden"
     }
+  }
 }
