@@ -24,9 +24,6 @@
     },
     "buildTarget": {
       "statusBarVisibility": "compact"
-    },
-    "debug": {
-      "statusBarVisibility": "icon"
     }
   },
   "files.exclude": {

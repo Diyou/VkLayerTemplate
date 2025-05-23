@@ -55,7 +55,7 @@ export
 constexpr string_view empty_view;
 
 constexpr string_view
-strip_left(string_view view, string_view match)
+strip_left(string_view const &view, string_view const &match)
 {
   size_t pos = view.rfind(match);
   return pos == string_view::npos ? empty_view
@@ -63,54 +63,53 @@ strip_left(string_view view, string_view match)
 }
 
 constexpr string_view
-strip_first_of(string_view view, string_view match)
+strip_right_of(string_view const &view, string_view const &match)
 {
   size_t pos = view.find_first_of(match);
   return pos == string_view::npos ? empty_view : view.substr(0, pos);
+}
+
+constexpr string_view
+strip(
+  string_view const &view,
+  string_view const &left,
+  string_view const &right)
+{
+  return strip_right_of(strip_left(view, left), right);
 }
 
 template< auto T >
 constexpr auto
 GetFunctionView()
 {
-  string_view needle = Compiler::GCC ? "[with auto T = " : "[T = &";
-  string_view signature =
-    strip_left(source_location::current().function_name(), needle);
-  string_view stripped_namespace = strip_left(signature, "::");
-  signature = stripped_namespace.empty() ? signature : stripped_namespace;
-  return strip_first_of(signature, ";]>");
-}
+  constexpr string_view match_left =
+    Compiler::GCC ? "[with auto T = " : "[T = &";
+  constexpr string_view match_right = ";]>";
 
-constexpr bool
-compare(string_view const left, char const *right)
-{
-  for (auto const *i = left.begin(); i != left.end(); ++i) {
-    if (*i != right[distance(left.begin(), i)]) {
-      return false;
-    }
-  }
-  return true;
+  string_view const     location = source_location::current().function_name();
+  string_view const     stripped = strip(location, match_left, match_right);
+  string_view const     without_namespace = strip_left(stripped, "::");
+  return without_namespace.empty() ? stripped : without_namespace;
 }
 
 template< size_t N >
 constexpr auto
-to_array(string_view view)
+to_array(string_view const &view)
 {
   array< char, N + 1 > buffer{};
-  copy(view.begin(), view.end(), buffer.begin());
+  view.copy(buffer.data(), N);
   return buffer;
 }
 
 export template< auto Function >
-constexpr auto
+constexpr string_view
 GetFunctionName()
 {
-  constexpr auto name   = GetFunctionView< Function >();
-  constexpr auto buffer = to_array< name.size() >(name);
+  constexpr string_view name   = GetFunctionView< Function >();
+  constexpr static auto buffer = to_array< name.size() >(name);
 
   static_assert(
-    !name.empty() && compare(name, buffer.data()),
-    "Function name extraction failed");
+    !name.empty() && name == buffer.data(), "Function name extraction failed");
 
-  return buffer;
+  return {buffer.data(), buffer.size()};
 }
