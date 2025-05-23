@@ -10,16 +10,9 @@ set(VK_LOADER_DEBUG layer,warn,error PARENT_SCOPE)
 include(C++Utils)
 
 DLL(${PROJECT_NAME} main.Loader.c++)
-target_sources(${PROJECT_NAME}
-PUBLIC
-    FILE_SET module_files
-    TYPE CXX_MODULES
-    FILES
-        Utils.c++
-)
 
 find_package(Vulkan REQUIRED)
-target_link_libraries(${PROJECT_NAME} cmake::Utils Vulkan::Vulkan)
+target_link_libraries(${PROJECT_NAME} dotfiles::Utils Vulkan::Vulkan)
 
 OutputName(${PROJECT_NAME} VK_LAYER_LIB)
 file(RELATIVE_PATH RELATIVE_SOURCE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})

@@ -1,7 +1,7 @@
 #include <vulkan/vk_layer.h>
 
 import std;
-import Utils;
+import dotfiles.Utils;
 
 using namespace std;
 
@@ -13,7 +13,7 @@ constexpr auto
 GetNextInstanceProcAddr(VkInstance instance)
 {
   using VkFunction    = decltype(Function);
-  constexpr auto name = GetFunctionName< Function >();
+  constexpr auto name = cmake::GetFunctionName< Function >();
 
   return VkFunction(GetInstanceProcAddr(instance, name.data()));
 }
@@ -23,7 +23,7 @@ constexpr auto
 GetNextDeviceProcAddr(VkDevice device)
 {
   using VkFunction    = decltype(Function);
-  constexpr auto name = GetFunctionName< Function >();
+  constexpr auto name = cmake::GetFunctionName< Function >();
 
   return VkFunction(GetDeviceProcAddr(device, name.data()));
 }
