@@ -21,43 +21,50 @@ export struct Compiler
 #endif
 };
 
-// Enable generic pointer types for format()
-/*export template< typename T > struct formatter< T *, char >
+namespace std {
+export
 {
-  constexpr static char        default_presentation = 'x';
-  constexpr static string_view supported            = "xX";
-  char                         presentation         = default_presentation;
+  // Enable generic pointer types for format()
+  using VoidFunctionPtr = void (*)();
 
-  constexpr auto
-  parse(format_parse_context &ctx)
+  template<> struct formatter< VoidFunctionPtr, char >
   {
-    auto const *iter = ctx.begin();
+    constexpr static char        default_presentation = 'x';
+    constexpr static string_view supported            = "xX";
+    char                         presentation         = default_presentation;
 
-    if (iter != ctx.end() && *iter != '}') {
-      char const chr = *iter++;
-      presentation   = supported.contains(chr) ? chr : default_presentation;
+    constexpr auto
+    parse(format_parse_context &ctx)
+    {
+      auto const *iter = ctx.begin();
+
+      if (iter != ctx.end() && *iter != '}') {
+        char const chr = *iter++;
+        presentation   = supported.contains(chr) ? chr : default_presentation;
+      }
+
+      // Ignore any extra characters after the format specifier
+      while (iter != ctx.end() && *iter != '}') {
+        ++iter;
+      }
+
+      return iter;
     }
 
-    // Ignore any extra characters after the format specifier
-    while (iter != ctx.end() && *iter != '}') {
-      ++iter;
+    auto
+    format(VoidFunctionPtr ptr, format_context &ctx) const
+    {
+      auto value = reinterpret_cast< uintptr_t >(ptr);
+
+      if (presentation == 'X') {
+        return format_to(ctx.out(), "0x{:X}", value);
+      }
+
+      return format_to(ctx.out(), "0x{:x}", value);
     }
-
-    return iter;
-  }
-
-  auto
-  format(T *ptr, format_context &ctx) const
-  {
-    auto value = reinterpret_cast< uintptr_t >(ptr);
-
-    if (presentation == 'X') {
-      return format_to(ctx.out(), "0x{:X}", value);
-    }
-
-    return format_to(ctx.out(), "0x{:x}", value);
-  }
-};*/
+  };
+}
+}
 
 constexpr string_view empty_view;
 

@@ -25,9 +25,6 @@
     "buildTarget": {
       "statusBarVisibility": "compact"
     },
-    "launch": {
-      "statusBarVisibility": "visible"
-    },
     "debug": {
       "statusBarVisibility": "icon"
     }

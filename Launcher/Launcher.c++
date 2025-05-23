@@ -7,6 +7,7 @@
 
 import std;
 using namespace std;
+namespace fs = filesystem;
 
 void
 Launch(span< char * > const &args)
@@ -27,7 +28,7 @@ Launch(span< char * > const &args)
 }
 
 void
-PrintHelp(string_view const &cmd)
+PrintHelp(fs::path const &cmd)
 {
   cout << format(
     R"(Help for {0}
@@ -36,7 +37,7 @@ Usage: {0} <command> [args...]
 Example:
   {0} vkgears
 )",
-    cmd);
+    cmd.filename().c_str());
 }
 
 int
@@ -44,9 +45,10 @@ main(int argc, char *argv[])
 {
   span< char * > args{argv, static_cast< size_t >(argc)};
 
-  if (!args.empty()) {
-    Launch(args.subspan(1));
+  if (args.size() <= 1) {
+    PrintHelp(*args.begin());
+    exit(EXIT_FAILURE);
   }
 
-  PrintHelp(*args.begin());
+  Launch(args.subspan(1));
 }
