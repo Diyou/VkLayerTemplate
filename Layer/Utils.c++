@@ -3,23 +3,9 @@ module;
 export module Utils;
 
 import std;
+import cmake.Utils;
 using namespace std;
-
-export struct Compiler
-{
-#if defined(__GNUC__) && !defined(__clang__)
-  constexpr static bool GCC   = true;
-  constexpr static bool CLANG = false;
-#else
-  constexpr static bool GCC   = false;
-  constexpr static bool CLANG = true;
-#endif
-#if defined(_MSC_VER)
-  constexpr static bool MSVC = true;
-#else
-  constexpr static bool MSVC = false;
-#endif
-};
+using Compiler = cmake::Compiler;
 
 namespace std {
 export

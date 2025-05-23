@@ -19,7 +19,7 @@ PUBLIC
 )
 
 find_package(Vulkan REQUIRED)
-target_link_libraries(${PROJECT_NAME} DOTCMAKE::Utils Vulkan::Vulkan)
+target_link_libraries(${PROJECT_NAME} cmake::Utils Vulkan::Vulkan)
 
 OutputName(${PROJECT_NAME} VK_LAYER_LIB)
 file(RELATIVE_PATH RELATIVE_SOURCE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
