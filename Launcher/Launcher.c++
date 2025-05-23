@@ -11,7 +11,7 @@ using namespace std;
 void
 Launch(span< char * > const &args)
 {
-  auto *const cmd = args.at(0);
+  char *const cmd = *args.begin();
 
 #ifdef _WIN32
   auto const result = _spawnvp(_P_OVERLAY, cmd, args.data());
@@ -42,13 +42,11 @@ Example:
 int
 main(int argc, char *argv[])
 {
-  string_view    cmd    = argv[0];
-  size_t const   offset = 1;
-  span< char * > args{argv + offset, argc - offset};
+  span< char * > args{argv, static_cast< size_t >(argc)};
 
   if (!args.empty()) {
-    Launch(args);
+    Launch(args.subspan(1));
   }
 
-  PrintHelp(cmd);
+  PrintHelp(*args.begin());
 }

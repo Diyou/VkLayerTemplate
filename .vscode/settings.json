@@ -1,27 +1,18 @@
 {
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "files.exclude": {
-    ".cache": true,
-    "build": true,
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/CVS": true,
-    "**/.DS_Store": true,
-    "**/Thumbs.db": true
-  },
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "C_Cpp.intelliSenseEngine": "disabled",
-  "clangd.arguments": ["--header-insertion=never", "--clang-tidy"],
   "[cpp]": {
     "files.insertFinalNewline": true,
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
+  "clangd.arguments": [
+    "--header-insertion=never",
+    "--clang-tidy"
+  ],
+  "debug.onTaskErrors": "abort",
   "cmake.useCMakePresets": "always",
   "cmake.options.statusBarVisibility": "hidden",
   "cmake.options.advanced": {
@@ -35,10 +26,20 @@
       "statusBarVisibility": "compact"
     },
     "launch": {
-      "statusBarVisibility": "hidden"
+      "statusBarVisibility": "visible"
     },
     "debug": {
-      "statusBarVisibility": "hidden"
+      "statusBarVisibility": "icon"
     }
+  },
+  "files.exclude": {
+    ".cache": true,
+    "build": true,
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true
   }
 }

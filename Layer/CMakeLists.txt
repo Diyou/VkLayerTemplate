@@ -7,6 +7,8 @@ set(VKLAYER_MANIFEST_LOCATION /usr/share/vulkan/implicit_layer.d)
 set(VK_ADD_IMPLICIT_LAYER_PATH ..${VKLAYER_MANIFEST_LOCATION} PARENT_SCOPE)
 set(VK_LOADER_DEBUG layer,warn,error PARENT_SCOPE)
 
+include(C++Utils)
+
 DLL(${PROJECT_NAME} main.Loader.c++)
 target_sources(${PROJECT_NAME}
 PUBLIC
@@ -17,7 +19,7 @@ PUBLIC
 )
 
 find_package(Vulkan REQUIRED)
-target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan)
+target_link_libraries(${PROJECT_NAME} DOTCMAKE::Utils Vulkan::Vulkan)
 
 OutputName(${PROJECT_NAME} VK_LAYER_LIB)
 file(RELATIVE_PATH RELATIVE_SOURCE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})

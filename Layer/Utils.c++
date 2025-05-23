@@ -22,7 +22,7 @@ export struct Compiler
 };
 
 // Enable generic pointer types for format()
-export template< typename T > struct formatter< T *, char >
+/*export template< typename T > struct formatter< T *, char >
 {
   constexpr static char        default_presentation = 'x';
   constexpr static string_view supported            = "xX";
@@ -57,7 +57,7 @@ export template< typename T > struct formatter< T *, char >
 
     return format_to(ctx.out(), "0x{:x}", value);
   }
-};
+};*/
 
 constexpr string_view empty_view;
 
