@@ -111,5 +111,5 @@ GetFunctionName()
   static_assert(
     !name.empty() && name == buffer.data(), "Function name extraction failed");
 
-  return {buffer.data(), buffer.size()};
+  return {buffer.data(), name.size()};
 }
