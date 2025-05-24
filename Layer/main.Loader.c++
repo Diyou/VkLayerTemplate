@@ -1,9 +1,11 @@
 #include <vulkan/vk_layer.h>
 
 import std;
-import dotfiles.Utils;
+import dotcmake;
 
 using namespace std;
+
+constexpr string_view                           LAYER_NAME = VK_LAYER_NAME;
 
 VKAPI_ATTR PFN_vkGetInstanceProcAddr VKAPI_CALL GetInstanceProcAddr = nullptr;
 VKAPI_ATTR PFN_vkGetDeviceProcAddr VKAPI_CALL   GetDeviceProcAddr   = nullptr;
@@ -13,7 +15,7 @@ constexpr auto
 GetNextInstanceProcAddr(VkInstance instance)
 {
   using VkFunction    = decltype(Function);
-  constexpr auto name = cmake::GetFunctionName< Function >();
+  constexpr auto name = dotcmake::GetFunctionName< Function >();
 
   return VkFunction(GetInstanceProcAddr(instance, name.data()));
 }
@@ -23,7 +25,7 @@ constexpr auto
 GetNextDeviceProcAddr(VkDevice device)
 {
   using VkFunction    = decltype(Function);
-  constexpr auto name = cmake::GetFunctionName< Function >();
+  constexpr auto name = dotcmake::GetFunctionName< Function >();
 
   return VkFunction(GetDeviceProcAddr(device, name.data()));
 }

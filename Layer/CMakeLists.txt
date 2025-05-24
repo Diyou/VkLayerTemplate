@@ -1,14 +1,19 @@
+set(VK_LAYER_NAME VK_LAYER_${PROJECT_NAME})
+set(VK_LAYER_DESCRIPTION "${PROJECT_NAME} Vulkan layer")
+
 include(C++Utils)
 
 DLL(${PROJECT_NAME} main.Loader.c++)
+target_compile_definitions(${PROJECT_NAME}
+PRIVATE
+    VK_LAYER_NAME="${VK_LAYER_NAME}"
+)
 
 find_package(Vulkan REQUIRED)
-target_link_libraries(${PROJECT_NAME} dotfiles::Utils Vulkan::Vulkan)
+target_link_libraries(${PROJECT_NAME} .cmake::Utils Vulkan::Vulkan)
 
 # Configure manifest file
-set(VK_LAYER_NAME VK_LAYER_${PROJECT_NAME})
 string(TOUPPER ${PROJECT_NAME} VK_LAYER_TOGGLE)
-set(VK_LAYER_DESCRIPTION "${PROJECT_NAME} Vulkan layer")
 
 set(VKLAYER_MANIFEST_LOCATION /usr/share/vulkan/implicit_layer.d)
 set(VK_ADD_IMPLICIT_LAYER_PATH ${CMAKE_BINARY_DIR}${VKLAYER_MANIFEST_LOCATION})
