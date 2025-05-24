@@ -6,5 +6,3 @@ project(VkLayerTemplate)
 
 add_subdirectory(Layer)
 add_subdirectory(Launcher)
-
-set(DEBUG_ARGS vkgears)
