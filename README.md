@@ -5,13 +5,13 @@
 ### How-to
 
 - Configure & Build using CMakePresets
-  - VsCode: Use CMake Tools UI
+  - VSCode: Use CMake Tools UI
   - CLI:
     ```sh
     cmake --preset=debug && cmake --build --preset=debug
     ```
 - Debug
-  - VsCode: [F5] Or manually launch the configuration (launch.json)
+  - VSCode: [F5] Or manually launch the configuration (launch.json)
   - CLI: From the output directory Load the debug.env file and start Launcher with an argument like:
     - bash
       ```bash
